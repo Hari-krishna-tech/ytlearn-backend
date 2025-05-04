@@ -19,26 +19,26 @@
     - [x] `spring.jpa.hibernate.ddl-auto=update` (for development)
 
 ## 3. Define Database Schema & JPA Entities
-- [ ] **User Entity**
-    - [ ] Fields: `id`, `googleId`, `name`, `email`, `profilePicture`, `createdAt`, `updatedAt`
-- [ ] **OAuthToken Entity**
-    - [ ] Fields: `id`, `user` (Foreign Key), `accessToken`, `refreshToken`, `tokenType`, `expiresAt`, `scope`, `createdAt`
-- [ ] **Playlist Entity**
-    - [ ] Fields: `id`, `user` (Foreign Key), `playlistId`, `title`, `description`, `totalVideos`, `lastSyncedAt`, `createdAt`, `updatedAt`
-- [ ] **Video Entity**
-    - [ ] Fields: `id`, `playlist` (Foreign Key), `youtubeVideoId`, `title`, `description`, `position`, `status` (e.g., COMPLETE, IN_PROGRESS, INCOMPLETE), `createdAt`, `updatedAt`
-- [ ] **Note Entity**
-    - [ ] Fields: `id`, `video` (Foreign Key), `content`, `createdAt`, `updatedAt`
-- [ ] Create the corresponding Spring Data JPA repositories for each entity.
+- [x] **User Entity**
+    - [x] Fields: `id`, `googleId`, `name`, `email`, `profilePicture`, `createdAt`, `updatedAt`
+- [x] **OAuthToken Entity**
+    - [x] Fields: `id`, `user` (Foreign Key), `accessToken`, `refreshToken`, `tokenType`, `expiresAt`, `scope`, `createdAt`
+- [x] **Playlist Entity**
+    - [x] Fields: `id`, `user` (Foreign Key), `playlistId`, `title`, `description`, `totalVideos`, `lastSyncedAt`, `createdAt`, `updatedAt`
+- [x] **Video Entity**
+    - [x] Fields: `id`, `playlist` (Foreign Key), `youtubeVideoId`, `title`, `description`, `position`, `status` (e.g., COMPLETE, IN_PROGRESS, INCOMPLETE), `createdAt`, `updatedAt`
+- [x] **Note Entity**
+    - [x] Fields: `id`, `video` (Foreign Key), `content`, `createdAt`, `updatedAt`
+- [x] Create the corresponding Spring Data JPA repositories for each entity.
 
 ## 4. Configure Google OAuth2/OpenID Connect
-- [ ] **Google Cloud Console Setup**
-    - [ ] Create a new Google Cloud project.
-    - [ ] Enable the YouTube Data API (if needed).
-    - [ ] Create OAuth 2.0 credentials.
-    - [ ] Set the Authorized Redirect URI (e.g., `http://localhost:8080/login/oauth2/code/google`).
-- [ ] **application.properties Configuration**
-    - [ ] Add properties for OAuth2 with Google (`client-id`, `client-secret`, `scope`, `redirect-uri`).
+- [x] **Google Cloud Console Setup**
+    - [x] Create a new Google Cloud project.
+    - [x] Enable the YouTube Data API (if needed).
+    - [x] Create OAuth 2.0 credentials.
+    - [x] Set the Authorized Redirect URI (e.g., `http://localhost:8080/login/oauth2/code/google`).
+- [x] **application.properties Configuration**
+    - [x] Add properties for OAuth2 with Google (`client-id`, `client-secret`, `scope`, `redirect-uri`).
 - [ ] **Security Configuration**
     - [ ] Implement a custom `SecurityConfig` class to secure endpoints and configure OAuth2 login.
 - [ ] **Token Handling**

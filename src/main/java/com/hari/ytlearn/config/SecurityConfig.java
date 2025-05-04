@@ -1,0 +1,152 @@
+package com.hari.ytlearn.config;
+
+import com.hari.ytlearn.model.OAuthToken;
+import com.hari.ytlearn.model.User;
+import com.hari.ytlearn.repository.OAuthTokenRepository;
+import com.hari.ytlearn.service.OAuthTokenService;
+import com.hari.ytlearn.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.web.SecurityFilterChain;
+
+import java.time.Instant;
+import java.util.Map;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Autowired
+    private OAuthTokenService oAuthTokenService;
+    @Autowired
+
+    private UserService userService;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/", "/error", "login/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().authenticated()
+                )
+
+                // Configure OAuth2 login - note the proper nesting
+                .oauth2Login(oauth2 -> oauth2
+                        .defaultSuccessUrl("/api/playlists", true)
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .oidcUserService(oidcUserService())
+                        )
+                )
+
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/").permitAll());
+
+        return http.build();
+    }
+
+
+    /**
+     * Customized OIDC user service that extracts user details and OAuth tokens
+     * from the authentication response and persists them using service classes.
+     */
+    @Bean
+    public OidcUserService oidcUserService() {
+        OidcUserService delegate = new OidcUserService();
+
+        return new OidcUserService() {
+            @Override
+            public OidcUser loadUser(OidcUserRequest userRequest) {
+                // Load the user using the delegate service
+                OidcUser oidcUser = delegate.loadUser(userRequest);
+
+                try {
+                    // Extract user information from claims
+                    Map<String, Object> claims = oidcUser.getClaims();
+
+                    // Extract required user details
+                    String googleId = (String) claims.get("sub");
+                    String email = (String) claims.get("email");
+                    String name = (String) claims.get("name");
+                    String picture = (String) claims.get("picture");
+
+                    // Save or update user in database
+                    User user = userService.findByGoogleId(googleId) ;
+                    if(user == null) {
+                        user = new User();
+                    }
+
+                    user.setGoogleId(googleId);
+                    user.setEmail(email);
+                    user.setName(name);
+                    user.setProfilePicture(picture);
+
+                    User savedUser = userService.saveUser(user);
+
+                    // Extract token information
+                    OAuth2AccessToken accessToken = userRequest.getAccessToken();
+                    String scope = accessToken.getScopes().toString();
+                    OAuthToken existingToken = oAuthTokenService.getTokenByUserId(savedUser.getId());
+                    OAuthToken newToken;
+                    if(existingToken != null) {
+
+                        newToken = existingToken;
+                        newToken.setUser(savedUser);
+                        newToken.setUpdatedAt(Instant.now());
+                    } else {
+                        newToken = new OAuthToken();
+                    }
+
+                    String tokenValue = accessToken.getTokenValue();
+                    String tokenType = accessToken.getTokenType().getValue();
+                    Instant expiresAt = accessToken.getExpiresAt();
+                    newToken.setAccessToken(tokenValue);
+                    newToken.setTokenType(tokenType);
+                    newToken.setExpiresAt(expiresAt);
+                    newToken.setScope(scope);
+
+                    // Get refresh token if available
+                    // Note: Refresh token is typically only sent on initial authentication
+                    String refreshToken = null;
+                    if (userRequest.getAdditionalParameters().containsKey("refresh_token")) {
+                        refreshToken = (String) userRequest.getAdditionalParameters().get("refresh_token");
+                    }
+
+                    if(refreshToken != null) {
+                        newToken.setRefreshToken(refreshToken);
+                    }
+                    // Save token information
+                    oAuthTokenService.save(newToken);
+
+                    // Log successful authentication
+                    System.out.println("Successfully authenticated user: " + email);
+
+                } catch (Exception e) {
+                    // Log any errors but don't prevent authentication
+                    System.err.println("Error processing OAuth2 user: " + e.getMessage());
+                    e.printStackTrace();
+                }
+
+                // Return the original OidcUser to continue the authentication process
+                return oidcUser;
+            }
+        };
+    }
+
+
+    /**
+     * Optional: Customize the OIDC user service to process and adapt the user details.
+     * For example, you can map additional attributes or perform actions when users log in.
+     */
+
+}
