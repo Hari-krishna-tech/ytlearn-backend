@@ -1,10 +1,10 @@
-package com.hari.ytlearn.dto.playlistdetails;
+package com.hari.ytlearn.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Reusable Thumbnail classes (can be shared or kept separate)
+// Contains thumbnail URLs
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -12,6 +12,5 @@ class Thumbnails {
     private Thumbnail defaultThumbnail; // Renamed field
     private Thumbnail medium;
     private Thumbnail high;
-    private Thumbnail standard;
-    private Thumbnail maxres;
+    // Add standard, maxres if needed
 }

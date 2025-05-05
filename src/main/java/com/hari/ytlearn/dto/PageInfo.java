@@ -1,4 +1,4 @@
-package com.hari.ytlearn.dto.playlistdetails;
+package com.hari.ytlearn.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

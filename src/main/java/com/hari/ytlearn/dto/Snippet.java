@@ -1,19 +1,23 @@
-package com.hari.ytlearn.dto.playlistdetails;
+package com.hari.ytlearn.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Snippet specific to Playlist resource
+// Contains details about the video
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Snippet {
+class Snippet {
     private String publishedAt;
     private String channelId;
     private String title;
     private String description;
     private Thumbnails thumbnails;
     private String channelTitle;
-    // localized might be present if requested
+    private String playlistId;
+    private int position;
+    private ResourceId resourceId;
+    private String videoOwnerChannelTitle;
+    private String videoOwnerChannelId;
 }

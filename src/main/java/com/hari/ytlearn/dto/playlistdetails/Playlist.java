@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Contains the video ID
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-class ResourceId {
+public class Playlist {
     private String kind;
-    private String videoId;
+    private String etag;
+    private String id;
+    private Snippet snippet;
+    private ContentDetails contentDetails;
+    // Add 'status' if you need privacyStatus, etc. (requires 'status' in 'part')
 }
