@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -35,13 +36,18 @@ public class SecurityConfig {
     @Autowired
     private OAuthTokenService oAuthTokenService;
     @Autowired
-
     private UserService userService;
-
-
     // Inject ClientRegistrationRepository here
     @Autowired
     private ClientRegistrationRepository clientRegistrationRepository;
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    @Autowired
+    private CustomLogoutSuccessHandler customLogoutSuccessHandler;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http
@@ -49,14 +55,17 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/error", "login/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/", "/error", "login/**", "/oauth2/**", "/api/auth/refresh").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
+                        // done by jwt
+
                 )
+
 
                 // Configure OAuth2 login - note the proper nesting
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/api/playlists", true)
+                        .successHandler(oAuth2LoginSuccessHandler)
                         // Configure the authorization endpoint
                         .authorizationEndpoint(authorization ->
                                 authorization.authorizationRequestResolver(
@@ -71,7 +80,10 @@ public class SecurityConfig {
                 )
 
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/").permitAll());
+                        .logoutUrl("/logout")
+                        .logoutSuccessHandler(customLogoutSuccessHandler)
+                        .permitAll())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -154,7 +166,10 @@ public class SecurityConfig {
             }
         };
     }
-
+    // --- Keep oidcUserService Bean (Simplified) ---
+    // Its main job now is to ensure the user exists in your DB.
+    // Token saving might still be useful if you need Google's tokens later,
+    // but JWT generation happens in the success handler.
 
     /**
      * Customized OIDC user service that extracts user details and OAuth tokens
@@ -256,6 +271,8 @@ public class SecurityConfig {
                 // Return the original OidcUser to continue the authentication process
                 return oidcUser;
             }
+
+
         };
     }
 

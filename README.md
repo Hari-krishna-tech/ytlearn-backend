@@ -39,12 +39,12 @@
     - [x] Set the Authorized Redirect URI (e.g., `http://localhost:8080/login/oauth2/code/google`).
 - [x] **application.properties Configuration**
     - [x] Add properties for OAuth2 with Google (`client-id`, `client-secret`, `scope`, `redirect-uri`).
-- [ ] **Security Configuration**
-    - [ ] Implement a custom `SecurityConfig` class to secure endpoints and configure OAuth2 login.
-- [ ] **Token Handling**
-    - [ ] Create a custom OAuth2 user service (e.g., `OAuth2UserService`) to:
-        - [ ] Extract user information from the OAuth2 response.
-        - [ ] Extract and persist the access and refresh tokens in the `OAuthToken` table.
+- [x] **Security Configuration**
+    - [x] Implement a custom `SecurityConfig` class to secure endpoints and configure OAuth2 login.
+- [x] **Token Handling**
+    - [x] Create a custom OAuth2 user service (e.g., `OAuth2UserService`) to:
+        - [x] Extract user information from the OAuth2 response.
+        - [x] Extract and persist the access and refresh tokens in the `OAuthToken` table.
 
 ## 5. REST API Endpoints (Backend Controllers)
 - [ ] **Authentication Endpoints**
