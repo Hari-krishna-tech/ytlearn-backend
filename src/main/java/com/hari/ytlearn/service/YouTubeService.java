@@ -43,6 +43,7 @@ public class YouTubeService {
     ) {
         this.restTemplate = restTemplate;
         this.apiKey = apiKey;
+        this.baseUrl = baseUrl;
         log.info("YouTubeService initialized with RestTemplate. Base URL: {}", baseUrl);
         if (apiKey == null || apiKey.isEmpty() || apiKey.equals("YOUR_YOUTUBE_API_KEY")) {
             log.warn("YouTube API Key is not configured properly in application.properties!");

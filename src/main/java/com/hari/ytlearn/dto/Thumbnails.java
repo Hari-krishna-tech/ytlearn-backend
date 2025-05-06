@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-class Thumbnails {
+public class Thumbnails {
     private Thumbnail defaultThumbnail; // Renamed field
     private Thumbnail medium;
     private Thumbnail high;

@@ -20,6 +20,9 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
     @Value("${jwt.cookie.refresh-token-name}")
     private String refreshTokenCookieName;
 
+    @Value("${frontend.redirect-url}")
+    private String frontendRedirectUrl;
+
     @Override
     public void onLogoutSuccess(
         HttpServletRequest request,
@@ -31,7 +34,7 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
         clearCookie(response, refreshTokenCookieName);
 
         // Redirect to home page or login page after logout
-        response.sendRedirect("/");
+        response.setStatus(200);
     }
 
     private void clearCookie(HttpServletResponse response, String name) {

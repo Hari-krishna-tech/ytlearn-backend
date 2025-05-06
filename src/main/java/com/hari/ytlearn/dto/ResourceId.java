@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-class ResourceId {
+public class ResourceId {
     private String kind;
     private String videoId;
 }

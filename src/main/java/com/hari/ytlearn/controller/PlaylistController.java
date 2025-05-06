@@ -2,9 +2,14 @@ package com.hari.ytlearn.controller;
 
 
 import com.hari.ytlearn.model.Playlist;
+import com.hari.ytlearn.model.User;
+import com.hari.ytlearn.service.JwtService;
 import com.hari.ytlearn.service.PlaylistService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -16,6 +21,14 @@ public class PlaylistController {
 
     @Autowired
     private PlaylistService playlistService;
+
+    @Autowired
+    private JwtService jwtService;
+
+
+    @Autowired
+    private UserDetailsService userDetailsService; // Use UserDetailsService
+
 
     @GetMapping("/")
     public ResponseEntity<?> getAllPlaylist() {
@@ -37,14 +50,41 @@ public class PlaylistController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<?> createPlaylist(@RequestBody Map<String, Object> payload) {
-        String name = (String) payload.get("name");
-        if(name == null) {
+    public ResponseEntity<?> createPlaylist(
+            @CookieValue(
+                    name = "${jwt.cookie.access-token-name}",
+                    required = false
+            ) String accessToken,
+            @RequestBody Map<String, Object> payload) {
+
+
+        if (accessToken == null || accessToken.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Refresh token not found in cookie.");
+        }
+
+        String userId = null;
+            // Validate the refresh token itself (check signature, expiry)
+        if (!jwtService.isTokenValid(accessToken)) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid or expired refresh token.");
+            }
+        userId = jwtService.extractUserId(accessToken);
+
+            // Load user details using the ID from the token
+        UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+
+
+
+            String url = (String) payload.get("url");
+        if(url== null) {
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            Playlist playlist = playlistService.save(name);
+            Playlist playlist = playlistService.save(url, (User) userDetails);
             return ResponseEntity.ok(playlist);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

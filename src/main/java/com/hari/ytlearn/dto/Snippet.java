@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-class Snippet {
+public class Snippet {
     private String publishedAt;
     private String channelId;
     private String title;

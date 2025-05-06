@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-class Thumbnail {
+public class Thumbnail {
     private String url;
     private int width;
     private int height;

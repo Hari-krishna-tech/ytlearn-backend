@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-class PageInfo {
+public class PageInfo {
     private int totalResults;
     private int resultsPerPage;
 }

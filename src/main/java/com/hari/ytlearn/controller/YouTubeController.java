@@ -74,7 +74,7 @@ public class YouTubeController {
     @GetMapping("/playlist/items")
     public ResponseEntity<PlaylistResponse> getPlaylistItemsByUrl(
         @RequestParam String url,
-        @RequestParam(defaultValue = "10") int maxResults,
+        @RequestParam(defaultValue = "100") int maxResults,
         @RequestParam(required = false) String pageToken
     ) {
          log.info(
