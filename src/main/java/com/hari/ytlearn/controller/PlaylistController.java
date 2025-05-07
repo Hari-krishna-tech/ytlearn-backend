@@ -1,6 +1,7 @@
 package com.hari.ytlearn.controller;
 
 
+import com.hari.ytlearn.dto.PlaylistCreateDTO;
 import com.hari.ytlearn.model.Playlist;
 import com.hari.ytlearn.model.User;
 import com.hari.ytlearn.service.JwtService;
@@ -32,11 +33,12 @@ public class PlaylistController {
 
     @GetMapping("/")
     public ResponseEntity<?> getAllPlaylist() {
-        ArrayList<Playlist> listOfPlaylist = playlistService.findAll();
+        ArrayList<PlaylistCreateDTO> listOfPlaylist = playlistService.findAll();
+        System.out.println("listOfPlaylist: " + listOfPlaylist);
         if(listOfPlaylist == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(playlistService.findAll());
+        return ResponseEntity.ok(listOfPlaylist);
     }
 
 

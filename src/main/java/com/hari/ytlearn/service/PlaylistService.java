@@ -1,5 +1,6 @@
 package com.hari.ytlearn.service;
 
+import com.hari.ytlearn.dto.PlaylistCreateDTO;
 import com.hari.ytlearn.dto.PlaylistResponse;
 import com.hari.ytlearn.model.Playlist;
 import com.hari.ytlearn.model.Status;
@@ -26,6 +27,9 @@ public class PlaylistService {
 
     @Autowired
     private VideoRepository videoRepository;
+
+    @Autowired
+    private VideoService videoService;
 
 
     @Transactional // Ensures atomicity: either all save or none
@@ -155,8 +159,41 @@ public class PlaylistService {
         }
         return savedPlaylist;
     }
-    public ArrayList<Playlist> findAll() {
-        return (ArrayList<Playlist>) playlistRepository.findAll();
+    public ArrayList<PlaylistCreateDTO> findAll() {
+        ArrayList<Playlist> answer = (ArrayList<Playlist>) playlistRepository.findAll();
+        ArrayList<PlaylistCreateDTO> result = new ArrayList<>();
+        for (Playlist playlist : answer) {
+            PlaylistCreateDTO dto = new PlaylistCreateDTO();
+// Map fields from Playlist entity to PlaylistCreateDTO
+            dto.setYoutubePlaylistId(playlist.getYoutubePlaylistId());
+            dto.setTitle(playlist.getTitle());
+            dto.setDescription(playlist.getDescription());
+            dto.setPublishedAt(playlist.getPublishedAt());
+            dto.setChannelId(playlist.getChannelId());
+            dto.setChannelTitle(playlist.getChannelTitle());
+            dto.setItemCount(playlist.getItemCount()); // Autoboxing from int to Integer
+
+            // Thumbnail URLs
+            dto.setThumbnailDefaultUrl(playlist.getThumbnailDefaultUrl());
+            dto.setThumbnailMediumUrl(playlist.getThumbnailMediumUrl());
+            dto.setThumbnailHighUrl(playlist.getThumbnailHighUrl());
+            dto.setThumbnailStandardUrl(playlist.getThumbnailStandardUrl());
+            dto.setThumbnailMaxresUrl(playlist.getThumbnailMaxresUrl());
+
+            // Fields not in PlaylistCreateDTO (like id, user, etag, lastSyncedAt, createdAt, updatedAt)
+            // will not be mapped, which is consistent with the DTO's definition.
+            ArrayList<Video> videos = (ArrayList<Video>) videoService.getAllVideosWithPlayListId(playlist.getId());
+            int completedCount = 0;
+            for (Video video : videos) {
+                if (video.getStatus() == Status.COMPLETE) {
+                    completedCount++;
+                }
+            }
+
+            dto.setTotalCompletions(completedCount);
+            result.add(dto);
+        }
+        return result;
     }
 
     public Playlist findById(Long id) {
