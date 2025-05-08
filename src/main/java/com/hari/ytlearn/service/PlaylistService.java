@@ -2,6 +2,7 @@ package com.hari.ytlearn.service;
 
 import com.hari.ytlearn.dto.PlaylistCreateDTO;
 import com.hari.ytlearn.dto.PlaylistResponse;
+import com.hari.ytlearn.dto.VideoDTO;
 import com.hari.ytlearn.model.Playlist;
 import com.hari.ytlearn.model.Status;
 import com.hari.ytlearn.model.User;
@@ -30,6 +31,52 @@ public class PlaylistService {
 
     @Autowired
     private VideoService videoService;
+
+    public PlaylistCreateDTO findPlaylistById(Long id) {
+        Playlist playlist = findById(id);
+        if (playlist == null) {
+            return null;
+        }
+        PlaylistCreateDTO dto = new PlaylistCreateDTO();
+// Map fields from Playlist entity to PlaylistCreateDTO
+        dto.setId(playlist.getId());
+        dto.setYoutubePlaylistId(playlist.getYoutubePlaylistId());
+        dto.setTitle(playlist.getTitle());
+        dto.setDescription(playlist.getDescription());
+        dto.setPublishedAt(playlist.getPublishedAt());
+        dto.setChannelId(playlist.getChannelId());
+        dto.setChannelTitle(playlist.getChannelTitle());
+        dto.setItemCount(playlist.getItemCount()); // Autoboxing from int to Integer
+
+        // Thumbnail URLs
+        dto.setThumbnailDefaultUrl(playlist.getThumbnailDefaultUrl());
+        dto.setThumbnailMediumUrl(playlist.getThumbnailMediumUrl());
+        dto.setThumbnailHighUrl(playlist.getThumbnailHighUrl());
+        dto.setThumbnailStandardUrl(playlist.getThumbnailStandardUrl());
+        dto.setThumbnailMaxresUrl(playlist.getThumbnailMaxresUrl());
+
+        // Fields not in PlaylistCreateDTO (like id, user, etag, lastSyncedAt, createdAt, updatedAt)
+        // will not be mapped, which is consistent with the DTO's definition.
+        ArrayList<VideoDTO> videos = (ArrayList<VideoDTO>) videoService.getAllVideosWithPlayListId(playlist.getId());
+        int completedCount = 0;
+        int totalInprogrss = 0;
+        for (VideoDTO video : videos) {
+            if (video.getStatus() == Status.COMPLETE) {
+                completedCount++;
+            } else if (video.getStatus() == Status.IN_PROGRESS) {
+                totalInprogrss++;
+            }
+
+        }
+
+        dto.setTotalCompletions(completedCount);
+        dto.setTotalInProgress(totalInprogrss);
+
+
+        return dto;
+
+
+    }
 
 
     @Transactional // Ensures atomicity: either all save or none
@@ -113,6 +160,8 @@ public class PlaylistService {
                 }
 
                 Video video = new Video();
+                // playlist id is not saved in db, but is used as a foreign key in Video entity
+
                 video.setPlaylist(savedPlaylist); // Set the foreign key relationship
 
                 video.setYoutubePlaylistItemId(item.getId()); // ID of the item in the playlist
@@ -159,12 +208,13 @@ public class PlaylistService {
         }
         return savedPlaylist;
     }
-    public ArrayList<PlaylistCreateDTO> findAll() {
-        ArrayList<Playlist> answer = (ArrayList<Playlist>) playlistRepository.findAll();
+    public ArrayList<PlaylistCreateDTO> findAll(String userId) {
+        ArrayList<Playlist> answer = (ArrayList<Playlist>) playlistRepository.findAll(userId);
         ArrayList<PlaylistCreateDTO> result = new ArrayList<>();
         for (Playlist playlist : answer) {
             PlaylistCreateDTO dto = new PlaylistCreateDTO();
 // Map fields from Playlist entity to PlaylistCreateDTO
+            dto.setId(playlist.getId());
             dto.setYoutubePlaylistId(playlist.getYoutubePlaylistId());
             dto.setTitle(playlist.getTitle());
             dto.setDescription(playlist.getDescription());
@@ -182,18 +232,38 @@ public class PlaylistService {
 
             // Fields not in PlaylistCreateDTO (like id, user, etag, lastSyncedAt, createdAt, updatedAt)
             // will not be mapped, which is consistent with the DTO's definition.
-            ArrayList<Video> videos = (ArrayList<Video>) videoService.getAllVideosWithPlayListId(playlist.getId());
+            ArrayList<VideoDTO> videos = (ArrayList<VideoDTO>) videoService.getAllVideosWithPlayListId(playlist.getId());
             int completedCount = 0;
-            for (Video video : videos) {
+            int totalInprogrss = 0;
+            for (VideoDTO video : videos) {
                 if (video.getStatus() == Status.COMPLETE) {
                     completedCount++;
+                } else if (video.getStatus() == Status.INCOMPLETE) {
+                    totalInprogrss++;
                 }
+
             }
 
             dto.setTotalCompletions(completedCount);
+            dto.setTotalInProgress(totalInprogrss);
             result.add(dto);
         }
         return result;
+    }
+
+    public ArrayList<VideoDTO> findVideosById(Long id, String userId) {
+
+        Playlist playlist = findById(id);
+        System.out.println(playlist.getUser().getId() + " " + userId);
+        if(playlist.getUser().getId().toString().equals(userId )) {
+
+            System.out.println("control reaches here");
+            ArrayList<VideoDTO> videos = (ArrayList<VideoDTO>) videoService.getAllVideosWithPlayListId(id);
+            System.out.println(videos.size());
+            return videos;
+        } else {
+            return null;
+        }
     }
 
     public Playlist findById(Long id) {

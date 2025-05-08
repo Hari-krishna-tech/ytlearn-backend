@@ -11,6 +11,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class PlaylistCreateDTO {
 
+    private Long id;
     private String youtubePlaylistId;
 
     private String title; // Optional, can be fetched from YouTube API
@@ -38,7 +39,7 @@ public class PlaylistCreateDTO {
 
 
     private int totalCompletions; // Optional, can be fetched from YouTube API
-
+    private int totalInProgress;
     // Note: The 'user' field is intentionally omitted as per your request.
     // The user association would typically be handled in the service layer,
     // for example, by taking the authenticated user's ID or a userId as a

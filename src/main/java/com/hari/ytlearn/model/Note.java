@@ -15,10 +15,6 @@ public class Note {
     private Long id;
 
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "video_id", referencedColumnName = "id")
-    private Video video;
-
 
     private String content;
 

@@ -15,7 +15,7 @@ public class Video {
 
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "playlist_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "playlist_id", referencedColumnName = "id" )
     private Playlist playlist;
 
     @Column(nullable = false)
@@ -46,6 +46,11 @@ public class Video {
 
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "note_id", referencedColumnName = "id")
+    private Note note;
+
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

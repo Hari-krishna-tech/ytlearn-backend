@@ -2,10 +2,13 @@ package com.hari.ytlearn.controller;
 
 
 import com.hari.ytlearn.dto.PlaylistCreateDTO;
+import com.hari.ytlearn.dto.VideoDTO;
 import com.hari.ytlearn.model.Playlist;
 import com.hari.ytlearn.model.User;
+import com.hari.ytlearn.model.Video;
 import com.hari.ytlearn.service.JwtService;
 import com.hari.ytlearn.service.PlaylistService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +35,30 @@ public class PlaylistController {
 
 
     @GetMapping("/")
-    public ResponseEntity<?> getAllPlaylist() {
-        ArrayList<PlaylistCreateDTO> listOfPlaylist = playlistService.findAll();
+    public ResponseEntity<?> getAllPlaylist(
+            @CookieValue(
+                    name = "${jwt.cookie.access-token-name}",
+                    required = false
+            ) String accessToken,
+            HttpServletResponse response
+    ) {
+
+        if (accessToken == null || accessToken.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Refresh token not found in cookie.");
+        }
+
+        String userId = null;
+        // Validate the refresh token itself (check signature, expiry)
+        if (!jwtService.isTokenValid(accessToken)) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid or expired refresh token.");
+        }
+        userId = jwtService.extractUserId(accessToken);
+
+            ArrayList<PlaylistCreateDTO> listOfPlaylist = playlistService.findAll(userId);
         System.out.println("listOfPlaylist: " + listOfPlaylist);
         if(listOfPlaylist == null) {
             return ResponseEntity.notFound().build();
@@ -41,14 +66,52 @@ public class PlaylistController {
         return ResponseEntity.ok(listOfPlaylist);
     }
 
+    @GetMapping("/details/{id}")
+    public ResponseEntity<?> getPlaylistById(
+            @CookieValue(
+                    name = "${jwt.cookie.access-token-name}",
+                    required = false
+            ) String accessToken,
+            @PathVariable Long id) {
+
+       PlaylistCreateDTO playlistCreateDTO = playlistService.findPlaylistById(id);
+
+       if(playlistCreateDTO == null) {
+           return ResponseEntity.notFound().build();
+       }
+       return ResponseEntity.ok(playlistCreateDTO);
+
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getPlaylistById(Long id) {
-        Playlist playlist = playlistService.findById(id);
-        if(playlist == null) {
+    public ResponseEntity<?> getPlaylistVideoById(
+            @CookieValue(
+                    name = "${jwt.cookie.access-token-name}",
+                    required = false
+            ) String accessToken,
+            @PathVariable Long id) {
+
+        if (accessToken == null || accessToken.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Refresh token not found in cookie.");
+        }
+
+        String userId = null;
+        // Validate the refresh token itself (check signature, expiry)
+        if (!jwtService.isTokenValid(accessToken)) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid or expired refresh token.");
+        }
+        userId = jwtService.extractUserId(accessToken);
+
+
+        ArrayList<VideoDTO> vidoes = playlistService.findVideosById(id, userId);
+        if(vidoes == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(playlist);
+        return ResponseEntity.ok(vidoes);
     }
 
     @PostMapping("/")
